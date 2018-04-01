@@ -7,3 +7,4 @@ jupyter nbextension enable codefolding/main
 jupyter nbextension enable zenmode/main
 jupyter nbextension enable runtools/main
 jupyter nbextension enable collapsible_headings/main
+jupyter nbextension enable hide_input/main

@@ -4,15 +4,21 @@
 %
 % Input : Data will be downloaded from OSF.
 %
+% Dependencies:
+%       - assocStat.m (single script)
+%       - Corr_toolbox_modified (folder) 
+%
 % Output:
 %       - phantomData.mat
 %       - pigMyocardium.mat
 %       - pigExVivo_Maps.mat
+%       - exvivoCorrelation.mat
+%       - Static .png figures from skipped correlation analysis
 %
 % This script follows the variable naming and structure convention
 % that is compatible with following (online executable) Jupyter Notebook:
 %
-% http://rebrand.ly/pigExVivo
+% Update link
 %
 %
 % Written by: Agah Karakuzu
@@ -23,6 +29,10 @@ function pigExVivo
 % Download data from Open Science Framework
 % Extract zip files
 
+% Please make sure that you have assocStat.m and Corr_toolbox_modified in
+% your current directory 
+
+addpath(genpath(pwd));
 try
     disp('Please wait. Downloading data...');
     disp('Downloading heart dataset...')
@@ -222,6 +232,8 @@ pigMyocardium = evalin('base', 'pigMyocardium');
 cd([path filesep 'Outputs']);
 save pigMyocardium.mat pigMyocardium
 
+disp('Perform statistical analysis...')
+assocStat
 disp(['All outputs have been saved to ' path filesep 'Outputs']);
 disp('---------------------------------------------- DONE.');
 
