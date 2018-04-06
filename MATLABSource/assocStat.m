@@ -113,6 +113,65 @@ disp('===============================================');
 
 save exvivoCorrelation.mat IR T2 MTR MOLLI SHMOLLI SASHA preLab postLab pooLab
 
+
+disp('Calculating bootstrapped CIs for phantom data...');
+
+load phantomData.mat 
+
+phanIR = [];
+phanMTR = [];
+phanMOLLI = [];
+phanSHMOLLI = [];
+phanSASHA = [];
+phanT2 = [];
+
+for i = 1:length(phantomData)
+
+    phanIR = [mean(phantomData(i).IRvec) phanIR];
+    phanT2 = [mean(phantomData(i).T2vec) phanT2];
+    phanMTR = [mean(phantomData(i).MTRvec) phanMTR];
+    phanMOLLI = [mean(phantomData(i).MOLLIvec) phanMOLLI];
+    phanSHMOLLI = [mean(phantomData(i).SHMOLLIvec) phanSHMOLLI];
+    phanSASHA = [mean(phantomData(i).SASHAvec) phanSASHA];
+   
+end
+
+phanMOLLI = phanMOLLI - phanIR;
+phanSHMOLLI = phanSHMOLLI - phanIR;
+phanSASHA = phanSASHA - phanIR;
+
+statMTRphan = struct();
+statT2phan = struct();
+
+
+[~,~,~,~,statMTRphan.MOLLI.CI] = Pearson(phanMTR,phanMOLLI,1,5/100);
+fgr = gcf;
+saveas(fgr,'phantom_MOLLI_MTR.png');
+close(fgr);
+[~,~,~,~,statMTRphan.SHMOLLI.CI] = Pearson(phanMTR,phanSHMOLLI,1,5/100);
+fgr = gcf;
+saveas(fgr,'phantom_SHMOLLI_MTR.png');
+close(fgr);
+[~,~,~,~,statMTRphan.SASHA.CI] = Pearson(phanMTR,phanSASHA,1,5/100);
+fgr = gcf;
+saveas(fgr,'phantom_SASHA_MTR.png');
+close(fgr);
+
+[~,~,~,~,statT2phan.MOLLI.CI] = Pearson(phanT2,phanMOLLI,1,5/100);
+fgr = gcf;
+saveas(fgr,'phantom_MOLLI_T2.png');
+close(fgr);
+[~,~,~,~,statT2phan.SHMOLLI.CI] = Pearson(phanT2,phanSHMOLLI,1,5/100);
+fgr = gcf;
+saveas(fgr,'phantom_SHMOLLI_T2.png');
+close(fgr);
+[~,~,~,~,statT2phan.SASHA.CI] = Pearson(phanT2,phanSASHA,1,5/100);
+fgr = gcf;
+saveas(fgr,'phantom_SASHA_T2.png');
+close(fgr);
+
+save phantomCorrelation.mat statMTRphan statT2phan
+
 end
 
 function [preHr] = getPrefixHearts(pigMyocardium, method)
@@ -181,7 +240,7 @@ function [outlierBin,elX, elY, ciOut, pval] = runSkipCor(input2, input1, nm1, nm
 disp('--------------------------------------');
 disp(['Skipped correlation ' prepost ' ' nm1  ' vs ' nm2]);
 
-
+close all;
 [~,~,~,outid] = skipped_correlation(input1',input2');
 fgr = gcf;
 saveas(fgr, [prepost '_' nm1 'vs' nm2 '.png']);
@@ -210,5 +269,7 @@ pval = evalin('base','pval');
 
 disp('--------------------------------------');
 end
+
+
 
 
