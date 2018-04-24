@@ -1,3 +1,42 @@
+% -------------------------------------------------------------------------
+% Statistical Analysis 
+% -------------------------------------------------------------------------
+%
+% Generated outputs are plugged into a Jupyter Notebook for interactive
+% visualization using Plotly. 
+%
+% Input : Data downloaded and parsed by pigExVivo.m
+%
+% 
+%
+%
+% Dependencies:
+%       
+%       - Corr_toolbox_modified (folder)
+%
+% Output:
+%       - exvivoCorrelation.mat
+%       - phantomCorrelation.mat
+%       - Static .png figures from skipped correlation analysis
+%
+% Online executable jupyter notebook is available at:    | Repeatable 
+%
+% -   http://neuropoly.pub/pigHeartsVis
+%
+% Data for this study is available at:                   | Open Data
+%
+% -   http://neuropoly.pub/pigHeartsData                 
+%
+% GitHub repository:                                     | Open Source
+% 
+% -   http://neuropoly.pub/pigHeartsSrc
+%
+% Written by: Agah Karakuzu
+%
+%             Ecole Polytechnique de Montreal
+%             Montreal, Canada 2018 
+% =========================================================================
+
 function assocStat
 
 load pigMyocardium.mat
@@ -5,8 +44,6 @@ load pigMyocardium.mat
 [preLab, postLab] = getLabels;
 
 pooLab = [preLab; postLab];
-
-% Initialize structs for analysis and visualization (Plotly)
 
 IR = struct();
 MOLLI = struct();
@@ -172,6 +209,61 @@ close(fgr);
 
 save phantomCorrelation.mat statMTRphan statT2phan
 
+%% Significance tests for changes before/after fixation 
+
+
+disp('Comparison for before/after fixation using Wilcoxon Signed Rank');
+
+% SASHA T1 Bias 
+prePostComp(SASHA.prefix.Bias, SASHA.postfix.Bias, 'SASHA bias');
+% SASHA T1
+prePostComp(getPrefixHearts(pigMyocardium,'SASHAvec'), getPostfixHearts(pigMyocardium,'SASHAvec'), 'SASHA T1');
+
+% MOLLI Bias
+prePostComp(MOLLI.prefix.Bias, MOLLI.postfix.Bias, 'MOLLI bias');
+% MOLLI T1
+prePostComp(getPrefixHearts(pigMyocardium,'MOLLIvec'), getPostfixHearts(pigMyocardium,'MOLLIvec'), 'MOLLI T1');
+
+% SHMOLLI Bias
+prePostComp(SHMOLLI.prefix.Bias, SHMOLLI.postfix.Bias, 'SHMOLLI bias');
+% SHMOLLI T1
+prePostComp(getPrefixHearts(pigMyocardium,'SHMOLLIvec'), getPostfixHearts(pigMyocardium,'SHMOLLIvec'), 'SHMOLLI T1');
+
+
+
+prePostComp(IR.prefix, IR.postfix,'IR');
+prePostComp(MTR.prefix, MTR.postfix,  'MTR');
+prePostComp(T2.prefix, T2.postfix, 'T2');
+
+
+
+%% Inversion Recovery vs T2 & MTR 
+
+irStat = struct();
+
+% This field is called bias just for compatibility with the python defs.
+
+irStat.prefix.Bias = IR.prefix;
+irStat.postfix.Bias = IR.postfix;
+
+[irStat.prefix.T2.outlierBin,irStat.prefix.T2.elX, irStat.prefix.T2.elY, irStat.prefix.T2.CI, irStat.prefix.T2.pval] = ...
+        runSkipCor(IR.prefix, T2.prefix, 'IR', 'T2', 'prefix', preLab);
+
+[irStat.postfix.T2.outlierBin,irStat.postfix.T2.elX, irStat.postfix.T2.elY, irStat.postfix.T2.CI, irStat.postfix.T2.pval] = ...
+        runSkipCor(IR.postfix, T2.postfix, 'IR', 'T2', 'postfix', postLab);    
+
+[irStat.prefix.MTR.outlierBin,irStat.prefix.MTR.elX, irStat.prefix.MTR.elY, irStat.prefix.MTR.CI, irStat.prefix.MTR.pval] = ...
+        runSkipCor(IR.prefix, MTR.prefix, 'IR', 'MTR', 'prefix', preLab);
+    
+[irStat.postfix.MTR.outlierBin,irStat.postfix.MTR.elX, irStat.postfix.MTR.elY, irStat.postfix.MTR.CI, irStat.postfix.MTR.pval] = ...
+        runSkipCor(IR.postfix, MTR.postfix, 'IR', 'MTR', 'postfix', postLab);   
+
+% Dummy assignment 
+
+irStat.pool = irStat.postfix;
+
+save irStat.mat irStat
+
 end
 
 function [preHr] = getPrefixHearts(pigMyocardium, method)
@@ -270,6 +362,19 @@ pval = evalin('base','pval');
 disp('--------------------------------------');
 end
 
+function prePostComp(preVec, postVec, testLabel)
 
+meanPre = mean(preVec);
+meanPost = mean(postVec);
+change = ((meanPre-meanPost)/meanPre).*100;
+p = signrank(preVec, postVec);
+
+
+tbl = table({testLabel},meanPre,meanPost, change, p,'VariableNames',{'Name','MeanPre','MeanPost', 'Change', 'pval'});
+disp('--------------------------------------------------');
+disp(tbl);
+
+
+end
 
 

@@ -6,7 +6,7 @@
 %
 % Dependencies:
 %       - assocStat.m (single script)
-%       - Corr_toolbox_modified (folder) 
+%       - Corr_toolbox_modified (folder)
 %
 % Output:
 %       - phantomData.mat
@@ -15,13 +15,23 @@
 %       - exvivoCorrelation.mat
 %       - Static .png figures from skipped correlation analysis
 %
-% This script follows the variable naming and structure convention
-% that is compatible with following (online executable) Jupyter Notebook:
+% Online executable JUPYTER NOTEBOOK is available at:  | Repeatable 
 %
-% Update link
+% ->   http://neuropoly.pub/pigHeartsVis
+%
+% DATA for this study is available at:                 | Open Data 
+%
+% ->   http://neuropoly.pub/pigHeartsData 
+%
+% GitHub repository:                                   | Open Source
+% 
+% ->   http://neuropoly.pub/pigHeartsSrc
 %
 %
 % Written by: Agah Karakuzu
+%
+%             Ecole Polytechnique de Montreal
+%             Montreal, Canada 2018 
 % =========================================================================
 
 function pigExVivo
@@ -30,7 +40,7 @@ function pigExVivo
 % Extract zip files
 
 % Please make sure that you have assocStat.m and Corr_toolbox_modified in
-% your current directory 
+% your current directory
 
 addpath(genpath(pwd));
 try
@@ -141,7 +151,7 @@ disp('Reading Phantom Maps Data');
 
 cd([path filesep 'Phantom']);
 
-selectedROI = [8 10 11 13 14 16 17]; % You can modify here (1 to 18 ROI)
+selectedROI = [10 11 13 14 16 17]; % You can modify here (1 to 18 ROI)
 tmpName = 'MT-ROI_';
 cd('MASKS');
 % Read all masks into a matrix.
@@ -231,9 +241,79 @@ pigMyocardium = evalin('base', 'pigMyocardium');
 
 cd([path filesep 'Outputs']);
 save pigMyocardium.mat pigMyocardium
+%% ========================================================================
+% Save .mat output for Heart2 voxelwise
+
+% Crop frame: 65 to 157 and 120 to 205
+% This yieds 93X86 (X6 for six weeks)
+
+molliSer = zeros(93,86,6);
+shmolliSer = molliSer;
+sashaSer = shmolliSer;
+irSer = shmolliSer;
+
+molliHr2 = struct();
+shmolliHr2 = struct();
+sashaHr2 = struct();
+irHr2 = struct();
+
+for i=1:3
+    
+    msk = logical(preFix(i).Mask(:,:,2));
+    
+    curIm = preFix(i).IR.Batch1.*msk;
+    curIm = curIm(65:157,120:205);
+    irSer(:,:,i) = curIm;
+    irHr2(i).vec = preFix(i).IR.Batch1(msk);
+    
+    curIm = preFix(i).MOLLI.Batch1.*msk;
+    curIm = curIm(65:157,120:205);
+    molliSer(:,:,i) = curIm;
+    molliHr2(i).vec = preFix(i).MOLLI.Batch1(msk);
+    
+    curIm = preFix(i).SHMOLLI.Batch1.*msk;
+    curIm = curIm(65:157,120:205);
+    shmolliSer(:,:,i) = curIm;
+    shmolliHr2(i).vec = preFix(i).SHMOLLI.Batch1(msk);
+    
+    curIm = preFix(i).SASHA.Batch1.*msk;
+    curIm = curIm(65:157,120:205);
+    sashaSer(:,:,i) = curIm;
+    sashaHr2(i).vec = preFix(i).SASHA.Batch1(msk);
+    
+    msk = logical(postFix(i).Mask(:,:,2));  % Postfix
+    
+    curIm = postFix(i).IR.Batch1.*msk;
+    curIm = curIm(65:157,120:205);
+    irSer(:,:,i+3) = curIm;
+    irHr2(i+3).vec = postFix(i).IR.Batch1(msk);
+    
+    
+    curIm = postFix(i).MOLLI.Batch1.*msk;
+    curIm = curIm(65:157,120:205);
+    molliSer(:,:,i+3) = curIm;
+    molliHr2(i+3).vec = postFix(i).MOLLI.Batch1(msk);
+    
+    curIm = postFix(i).SHMOLLI.Batch1.*msk;
+    curIm = curIm(65:157,120:205);
+    shmolliSer(:,:,i+3) = curIm;
+    shmolliHr2(i+3).vec = postFix(i).SHMOLLI.Batch1(msk);
+    
+    curIm = postFix(i).SASHA.Batch1.*msk;
+    curIm = curIm(65:157,120:205);
+    sashaSer(:,:,i+3) = curIm;
+    sashaHr2(i+3).vec = postFix(i).SASHA.Batch1(msk);
+    
+end
+
+save hr2Data.mat sashaHr2 sashaSer irHr2 irSer molliHr2 molliSer shmolliHr2 shmolliSer
+%% ========================================================================
+%  Statistical analysis: Please see assocStat.m for details 
 
 disp('Perform statistical analysis...')
+
 assocStat
+
 disp(['All outputs have been saved to ' path filesep 'Outputs']);
 disp('---------------------------------------------- DONE.');
 
