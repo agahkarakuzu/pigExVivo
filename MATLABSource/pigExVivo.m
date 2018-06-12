@@ -1,5 +1,5 @@
 % -------------------------------------------------------------------------
-% Please place this m-file in an empty folder and execute it.
+% Simply execute this m-file.
 % -------------------------------------------------------------------------
 %
 % Input : Data will be downloaded from OSF.
