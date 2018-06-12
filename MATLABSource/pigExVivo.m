@@ -27,6 +27,8 @@
 % 
 % ->   http://neuropoly.pub/pigHeartsSrc
 %
+% Please see line #315 to run this analysis for Native T1 values instead of
+% T1 Bias. 
 %
 % Written by: Agah Karakuzu
 %
@@ -310,9 +312,14 @@ save hr2Data.mat sashaHr2 sashaSer irHr2 irSer molliHr2 molliSer shmolliHr2 shmo
 %% ========================================================================
 %  Statistical analysis: Please see assocStat.m for details 
 
+% You can comment out line 317 and comment in line 319 to run this analysis
+% with Native T1 values instead of T1 Bias. 
+
 disp('Perform statistical analysis...')
 
-assocStat
+assocStat('T1Bias');
+
+%assocStat('NativeT1');
 
 disp(['All outputs have been saved to ' path filesep 'Outputs']);
 disp('---------------------------------------------- DONE.');

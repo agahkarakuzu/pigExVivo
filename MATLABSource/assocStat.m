@@ -37,7 +37,7 @@
 %             Montreal, Canada 2018 
 % =========================================================================
 
-function assocStat
+function assocStat(option)
 
 load pigMyocardium.mat
 
@@ -52,6 +52,11 @@ SASHA = struct();
 MTR = struct();
 T2 = struct();
 
+% T1 Bias 
+
+if strcmp(option,'T1Bias')
+disp('====================== NOTE:')
+disp('Running analysis for T1 Bias');
 IR.prefix = getPrefixHearts(pigMyocardium,'IRvec');
 MOLLI.prefix.Bias = getPrefixHearts(pigMyocardium,'MOLLIvec')- IR.prefix;
 SHMOLLI.prefix.Bias = getPrefixHearts(pigMyocardium,'SHMOLLIvec') - IR.prefix;
@@ -71,7 +76,37 @@ SHMOLLI.pool.Bias = [SHMOLLI.prefix.Bias SHMOLLI.postfix.Bias];
 SASHA.pool.Bias = [SASHA.prefix.Bias SASHA.postfix.Bias];
 T2.pool = [T2.prefix T2.postfix];
 MTR.pool = [MTR.prefix MTR.postfix];
+end
 
+% Native T1
+% Note that Model.FixationState.Bias will contain native T1 values instead
+% of T1 Bias, whereas variable name will remain the same. 
+
+% The outputs can be used in Jupyter Notebook in either case. 
+
+if strcmp(option,'NativeT1')
+disp('====================== NOTE:')
+disp('Running analysis for Native T1');
+IR.prefix = getPrefixHearts(pigMyocardium,'IRvec');
+MOLLI.prefix.Bias = getPrefixHearts(pigMyocardium,'MOLLIvec');
+SHMOLLI.prefix.Bias = getPrefixHearts(pigMyocardium,'SHMOLLIvec');
+SASHA.prefix.Bias = getPrefixHearts(pigMyocardium,'SASHAvec');
+MTR.prefix =  getPrefixHearts(pigMyocardium,'MTRvec');
+T2.prefix =  getPrefixHearts(pigMyocardium,'T2vec');
+
+IR.postfix = getPostfixHearts(pigMyocardium,'IRvec');
+MOLLI.postfix.Bias = getPostfixHearts(pigMyocardium,'MOLLIvec');
+SHMOLLI.postfix.Bias = getPostfixHearts(pigMyocardium,'SHMOLLIvec');
+SASHA.postfix.Bias = getPostfixHearts(pigMyocardium,'SASHAvec');
+MTR.postfix =  getPostfixHearts(pigMyocardium,'MTRvec');
+T2.postfix =  getPostfixHearts(pigMyocardium,'T2vec');
+
+MOLLI.pool.Bias = [MOLLI.prefix.Bias MOLLI.postfix.Bias];
+SHMOLLI.pool.Bias = [SHMOLLI.prefix.Bias SHMOLLI.postfix.Bias];
+SASHA.pool.Bias = [SASHA.prefix.Bias SASHA.postfix.Bias];
+T2.pool = [T2.prefix T2.postfix];
+MTR.pool = [MTR.prefix MTR.postfix];
+end
 
 fixState = [{'prefix'},{'postfix'}];
 label = [preLab postLab];
@@ -209,9 +244,7 @@ close(fgr);
 
 save phantomCorrelation.mat statMTRphan statT2phan
 
-%% Significance tests for changes before/after fixation 
-
-
+%% Significance tests for changes before/after fixation     
 disp('Comparison for before/after fixation using Wilcoxon Signed Rank');
 
 % SASHA T1 Bias 
